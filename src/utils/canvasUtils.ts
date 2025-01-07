@@ -1,6 +1,12 @@
+import Coin from '../classes/Coin'
 import Monster from '../classes/Monster'
 import Platform from '../classes/Platform'
-import { playerAppearances } from '../constants/appearance'
+import {
+  monsterAppearances,
+  playerAppearances,
+  platformAppearances,
+} from '../constants/appearance'
+import { coinAppearances } from '../constants/appearance'
 import { Player } from '../constants/objects'
 
 export const drawPlayer = (
@@ -16,6 +22,13 @@ export const drawPlayer = (
       `Image for appearance '${player.appearance}' is not loaded yet.`
     )
     return
+  }
+
+  // 무적 상태 처리
+  if (player.isInvincible) {
+    ctx.globalAlpha = 0.5 // 깜빡이는 효과 (반투명)
+  } else {
+    ctx.globalAlpha = 1 // 원래 상태
   }
 
   if (flip) {
@@ -41,6 +54,8 @@ export const drawPlayer = (
     // 일반적인 이미지 그리기
     ctx.drawImage(image, player.x, player.y, player.width, player.height)
   }
+
+  ctx.globalAlpha = 1 // 투명도 초기화
 }
 
 export const drawPlatforms = (
@@ -48,14 +63,39 @@ export const drawPlatforms = (
   platforms: Platform[],
   scrollOffset: number
 ) => {
-  ctx.fillStyle = 'green'
   platforms.forEach((platform) => {
-    ctx.fillRect(
-      platform.x - scrollOffset,
-      platform.y,
-      platform.width,
-      platform.height
+    // appearance에 맞는 이미지를 가져옴
+    const platformImage = platformAppearances[platform.appearance || 'default']
+
+    // 이미지가 로드되지 않았으면 경고 출력 후 건너뜀
+    if (!platformImage || !platformImage.complete) {
+      console.warn(
+        `Image for appearance '${platform.appearance}' is not loaded yet.`
+      )
+      return
+    }
+
+    platform.draw(ctx, scrollOffset, platformImage)
+  })
+}
+
+export const drawCoins = (
+  ctx: CanvasRenderingContext2D,
+  coins: Coin[],
+  scrollOffset: number
+) => {
+  const image = coinAppearances.default
+
+  // 이미지가 로드되지 않았으면 건너뜀
+  if (!image || !image.complete) {
+    console.warn(
+      `Image for appearance '${coinAppearances.default}' is not loaded yet.`
     )
+    return
+  }
+
+  coins.forEach((coin) => {
+    coin.draw(ctx, scrollOffset, image)
   })
 }
 
@@ -64,14 +104,20 @@ export const drawMonsters = (
   monsters: Monster[],
   scrollOffset: number
 ) => {
-  ctx.fillStyle = 'purple'
   monsters.forEach((monster) => {
-    ctx.fillRect(
-      monster.x - scrollOffset,
-      monster.y,
-      monster.width,
-      monster.height
-    )
+    // appearance에 맞는 이미지를 가져옴
+    const monsterImage = monsterAppearances[monster.appearance || 'default']
+
+    // 이미지가 로드되지 않았으면 경고 출력 후 건너뜀
+    if (!monsterImage || !monsterImage.complete) {
+      console.warn(
+        `Image for appearance '${monster.appearance}' is not loaded yet.`
+      )
+      return
+    }
+
+    // 몬스터를 그리기
+    monster.draw(ctx, scrollOffset, monsterImage)
   })
 }
 
@@ -82,7 +128,7 @@ export const drawLives = (
 ) => {
   if (!heartImage.complete) return
   for (let i = 0; i < player.lives; i++) {
-    ctx.drawImage(heartImage, 750 - i * 30, 10, 20, 20)
+    ctx.drawImage(heartImage, 20 + i * 30, 10, 20, 20)
   }
 }
 
@@ -91,10 +137,23 @@ export const drawBackground = (
   backgroundImage: HTMLImageElement,
   canvas: any
 ) => {
-  if (backgroundImage.complete) {
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height)
-  } else {
-    ctx.fillStyle = '#87CEEB'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-  }
+  ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height)
+
+  // 상단 코인
+  // const coinImage = coinAppearances.default
+  // ctx.drawImage(coinImage, 680, 10, 25, 25)
+}
+
+export const drawCollectedCoins = (
+  ctx: CanvasRenderingContext2D,
+  coinImage: HTMLImageElement,
+  canvas: any,
+  collectedCoins: number
+) => {
+  const iconSize = 25
+  ctx.drawImage(coinImage, canvas.width - 100, 10, iconSize, iconSize) // 코인 아이콘
+  ctx.font = '20px Arial'
+  ctx.fillStyle = 'black'
+  ctx.textAlign = 'left'
+  ctx.fillText(`x ${collectedCoins}`, canvas.width - 65, 32) // 코인 개수 텍스트
 }

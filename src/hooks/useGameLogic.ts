@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { initialPlayerState, monsters, platforms } from '../constants/objects'
+import {
+  initializeCoins,
+  initialPlayerState,
+  monsters,
+  platforms,
+} from '../constants/objects'
 import { GRAVITY, JUMP_STRENGTH } from '../constants/settings'
 import Platform from '../classes/Platform'
 import {
   drawBackground,
+  drawCoins,
+  drawCollectedCoins,
   drawLives,
   drawMonsters,
   drawPlatforms,
@@ -11,12 +18,15 @@ import {
 } from '../utils/canvasUtils'
 import background from '../assets/background/background.webp'
 import heartIcon from '../assets/heart/heart-icon.png'
+import { coinAppearances } from '../constants/appearance'
 
 const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
   const [gameOver, setGameOver] = useState(false)
   const scrollOffset = useRef(0)
   const animationFrameId = useRef<number | null>(null)
   const player = useRef({ ...initialPlayerState }).current
+
+  let coins = initializeCoins()
 
   // 이미지
   const heartImage = new Image() // 하트 이미지 전역 생성
@@ -33,6 +43,9 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
     resetPlayerPosition()
     scrollOffset.current = 0
     setGameOver(false)
+
+    // 코인 초기화
+    coins = initializeCoins()
 
     // 기존 AnimationFrame 중단
     if (animationFrameId.current !== null) {
@@ -146,6 +159,7 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
         }
       })
 
+      // 몬스터랑 부딪혔을 때
       monsters.forEach((monster) => {
         if (
           player.x + player.width > monster.x - scrollOffset.current &&
@@ -157,6 +171,21 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
         }
       })
 
+      // 동전 먹기
+      coins.forEach((coin) => {
+        if (
+          !coin.collected && // 아직 먹히지 않은 경우만 체크
+          player.x + player.width > coin.x - scrollOffset.current &&
+          player.x < coin.x + coin.width - scrollOffset.current &&
+          player.y + player.height > coin.y &&
+          player.y < coin.y + coin.height
+        ) {
+          coin.collected = true // 먹힌 상태로 플래그 변경
+          player.coin++
+        }
+      })
+
+      // 플랫폼에서 떨어질 때,
       if (player.y > canvas.height) {
         decreaseLives()
         resetPlayerToNearestPlatform()
@@ -174,8 +203,15 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       drawBackground(ctx, backgroundImage, canvasRef.current)
+      drawCollectedCoins(
+        ctx,
+        coinAppearances.default,
+        canvasRef.current,
+        player.coin
+      )
       drawPlayer(ctx, player, player.flip)
       drawPlatforms(ctx, platforms, scrollOffset.current)
+      drawCoins(ctx, coins, scrollOffset.current)
       drawMonsters(ctx, monsters, scrollOffset.current)
       drawLives(ctx, player, heartImage)
 
