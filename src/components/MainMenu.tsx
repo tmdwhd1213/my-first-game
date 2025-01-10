@@ -19,9 +19,17 @@ const MainMenu: React.FC<MainMenuProps> = ({
         backgroundImage: `url(${mainBackground})`,
       }}
     >
-      <h1 className="text-5xl font-extrabold text-white mb-4">
-        🎮 메인 메뉴 🎮
+      {/* 게임 제목 */}
+      <h1 className="text-7xl font-extrabold text-white drop-shadow-lg mb-6">
+        🐾 캣히어로: 집사를 찾아서 🐾
       </h1>
+
+      {/* 메인 메뉴 */}
+      <h2 className="text-5xl font-extrabold text-white mb-4">
+        🎮 메인 메뉴 🎮
+      </h2>
+
+      {/* 게임 설명 */}
       <div className="bg-gray-100 bg-opacity-80 rounded-lg shadow-lg p-6 w-4/5">
         <h2 className="text-2xl font-bold mb-2 text-blue-600">게임 설명</h2>
         <ul className="list-disc list-inside space-y-2 text-lg text-gray-700">
@@ -41,6 +49,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
         </ul>
       </div>
 
+      {/* 버튼들 */}
       <div className="flex flex-col space-y-4 mt-6">
         <button
           className="px-8 py-4 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600 transition"

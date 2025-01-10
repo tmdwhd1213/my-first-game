@@ -264,7 +264,7 @@ const useGameLogic = (
           player.hasWings = true // 날개 상태 활성화
           player.isInvincible = true // 무적 상태
 
-          const invincibleTime = 5000 * 1000 // 5초
+          const invincibleTime = 5 * 1000 // 5초
           triggerInvincibility(invincibleTime, true)
         }
       })
