@@ -1,6 +1,8 @@
 import Coin from '../classes/Coin'
+import Meat, { MeatAppearance } from '../classes/Meat'
 import Monster, { MonsterAppearance } from '../classes/Monster'
 import Platform, { PlatformAppearance } from '../classes/Platform'
+import Wing, { WingAppearance } from '../classes/Wing'
 import { playerAppearances } from './appearance'
 
 type AppearanceKey = keyof typeof playerAppearances
@@ -14,6 +16,7 @@ export interface Player {
   onGround: boolean
   flip: boolean
   lives: number // 목숨 추가
+  hasWings: boolean // 초기 상태는 날개 없음
   isInvincible: boolean // 무적 상태
   invincibleTime: number // 무적 지속 시간 (ms)
   appearance: AppearanceKey // 이미지 경로 또는 외형 키
@@ -37,6 +40,16 @@ export const monsters = [
   new Monster(1000, 100, 30, 30, MonsterAppearance.Monster2),
 ]
 
+export const initializeMeats = () => [
+  new Meat(0, 120, 30, 30, MeatAppearance.Default),
+  new Meat(1800, 100, 30, 30, MeatAppearance.Default),
+]
+
+export const initializeWings = () => [
+  new Wing(550, 100, 50, 50, WingAppearance.Default),
+  new Wing(2100, 180, 50, 50, WingAppearance.Default),
+]
+
 export const initializeCoins = () => [
   new Coin(300, 220, 30, 30),
   new Coin(500, 170, 30, 30),
@@ -52,8 +65,9 @@ export const initialPlayerState: Player = {
   dy: 0,
   onGround: false,
   lives: 3,
+  hasWings: false,
   isInvincible: false,
-  invincibleTime: 1500,
+  invincibleTime: 1.5 * 1000, // ms
   appearance: 'default', // 기본 외형 설정
   coin: 0,
 }

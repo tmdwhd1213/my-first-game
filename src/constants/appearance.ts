@@ -7,6 +7,8 @@ import defaultCoinImageSrc from '@/assets/coins/coin.png'
 import defaultMonsterImageSrc from '@/assets/monster/monster.png'
 import monster2ImageSrc from '@/assets/monster/monster2.png'
 import defaultplatformImageSrc from '@/assets/ground/ground.png'
+import defaultMeat from '@/assets/meat/hot-dog.png'
+import defaultWing from '@/assets/wing/heart-wings.png'
 
 export const playerAppearances: Record<string, HTMLImageElement> = {
   default: createImage(defaultImageSrc),
@@ -22,6 +24,14 @@ export const coinAppearances: Record<string, HTMLImageElement> = {
 export const monsterAppearances: Record<string, HTMLImageElement> = {
   default: createImage(defaultMonsterImageSrc),
   monster2: createImage(monster2ImageSrc),
+}
+
+export const meatAppearances: Record<string, HTMLImageElement> = {
+  default: createImage(defaultMeat),
+}
+
+export const wingAppearances: Record<string, HTMLImageElement> = {
+  default: createImage(defaultWing),
 }
 
 export const platformAppearances: Record<string, HTMLImageElement> = {

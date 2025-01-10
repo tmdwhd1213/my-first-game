@@ -1,10 +1,14 @@
 import Coin from '../classes/Coin'
+import Meat from '../classes/Meat'
 import Monster from '../classes/Monster'
 import Platform from '../classes/Platform'
+import Wing from '../classes/Wing'
 import {
   monsterAppearances,
   playerAppearances,
   platformAppearances,
+  meatAppearances,
+  wingAppearances,
 } from '../constants/appearance'
 import { coinAppearances } from '../constants/appearance'
 import { Player } from '../constants/objects'
@@ -118,6 +122,48 @@ export const drawMonsters = (
 
     // 몬스터를 그리기
     monster.draw(ctx, scrollOffset, monsterImage)
+  })
+}
+
+export const drawMeats = (
+  ctx: CanvasRenderingContext2D,
+  meats: Meat[],
+  scrollOffset: number
+) => {
+  meats.forEach((meat) => {
+    // appearance에 맞는 이미지를 가져옴
+    const meatImage = meatAppearances[meat.appearance || 'default']
+
+    // 이미지가 로드되지 않았으면 경고 출력 후 건너뜀
+    if (!meatImage || !meatImage.complete) {
+      console.warn(
+        `Image for appearance '${meat.appearance}' is not loaded yet.`
+      )
+      return
+    }
+
+    meat.draw(ctx, scrollOffset, meatImage)
+  })
+}
+
+export const drawWings = (
+  ctx: CanvasRenderingContext2D,
+  wings: Wing[],
+  scrollOffset: number
+) => {
+  wings.forEach((wing) => {
+    // appearance에 맞는 이미지를 가져옴
+    const wingImage = wingAppearances[wing.appearance || 'default']
+
+    // 이미지가 로드되지 않았으면 경고 출력 후 건너뜀
+    if (!wingImage || !wingImage.complete) {
+      console.warn(
+        `Image for appearance '${wing.appearance}' is not loaded yet.`
+      )
+      return
+    }
+
+    wing.draw(ctx, scrollOffset, wingImage)
   })
 }
 
