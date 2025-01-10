@@ -1,7 +1,11 @@
 import React, { useRef } from 'react'
 import useGameLogic from '../hooks/useGameLogic'
 
-const GameCanvas: React.FC = () => {
+interface GameCanvasProps {
+  onExit: () => void // 메인 화면으로 돌아가기 콜백
+}
+
+const GameCanvas: React.FC<GameCanvasProps> = ({ onExit }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const { gameOver, restartGame } = useGameLogic(canvasRef)
 
@@ -18,6 +22,14 @@ const GameCanvas: React.FC = () => {
           </button>
         </div>
       )}
+      <div className="absolute bottom-4 right-4">
+        <button
+          onClick={onExit}
+          className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg shadow-lg hover:bg-red-600"
+        >
+          Exit
+        </button>
+      </div>
       <canvas
         ref={canvasRef}
         width={800}

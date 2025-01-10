@@ -1,20 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   initializeCoins,
+  initializeMeats,
+  initializeWings,
   initialPlayerState,
   monsters,
   platforms,
 } from '../constants/objects'
-import { GRAVITY, JUMP_STRENGTH } from '../constants/settings'
+import { GRAVITY, JUMP_STRENGTH, MAX_FALL_SPEED } from '../constants/settings'
 import Platform from '../classes/Platform'
 import {
   drawBackground,
   drawCoins,
   drawCollectedCoins,
   drawLives,
+  drawMeats,
   drawMonsters,
   drawPlatforms,
   drawPlayer,
+  drawWings,
 } from '../utils/canvasUtils'
 import background from '../assets/background/background.webp'
 import heartIcon from '../assets/heart/heart-icon.png'
@@ -26,7 +30,11 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
   const animationFrameId = useRef<number | null>(null)
   const player = useRef({ ...initialPlayerState }).current
 
+  let invincibilityTimeout: NodeJS.Timeout | null = null
+
   let coins = initializeCoins()
+  let meats = initializeMeats()
+  let wings = initializeWings()
 
   // 이미지
   const heartImage = new Image() // 하트 이미지 전역 생성
@@ -75,9 +83,15 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
     }
 
     const handleMovement = () => {
-      if (keys['ArrowRight']) {
+      const canvas = canvasRef.current
+      if (!canvas) return
+
+      // 좌우 이동
+      if (keys['ArrowRight'] && player.x + player.width < canvas.width) {
         player.x += 5
         player.flip = true
+
+        // 캔버스 스크롤 이동 조건 수정
         if (player.x > canvas.width / 2) {
           scrollOffset.current += player.x - canvas.width / 2
           player.x = canvas.width / 2
@@ -89,23 +103,55 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
         player.flip = false
       }
 
-      if (keys['c'] && player.onGround) {
-        player.dy = JUMP_STRENGTH
-        player.onGround = false
+      // 날개로 인한 공중 이동
+      if (player.hasWings) {
+        if (keys['ArrowUp'] && player.y > 0) {
+          player.y -= 5 // 위로 이동
+        }
+        if (keys['ArrowDown'] && player.y + player.height < canvas.height) {
+          player.y += 5 // 아래로 이동
+        }
+      } else {
+        // 점프 (일반 상황)
+        if (keys['c'] && player.onGround) {
+          player.dy = JUMP_STRENGTH
+          player.onGround = false
+        }
       }
     }
 
-    const triggerInvincibility = () => {
+    const triggerInvincibility = (
+      invincibleTime: number,
+      fromWings: boolean = false
+    ) => {
+      if (invincibilityTimeout) {
+        clearTimeout(invincibilityTimeout) // 기존 타임아웃 제거
+      }
+
       player.isInvincible = true
-      setTimeout(() => {
+
+      if (fromWings) {
+        player.hasWings = true // 날개로 인한 상태
+      }
+      player.onGround = false // 공중에서 자유롭게 이동 가능
+      player.dy = 0 // 중력 초기화
+
+      invincibilityTimeout = setTimeout(() => {
         player.isInvincible = false
-      }, player.invincibleTime)
+
+        if (fromWings) {
+          player.hasWings = false // 날개 상태 종료
+        }
+
+        invincibilityTimeout = null
+      }, invincibleTime)
     }
 
     const decreaseLives = () => {
       if (player.isInvincible) return
+
       player.lives -= 1
-      triggerInvincibility()
+      triggerInvincibility(player.invincibleTime)
 
       if (player.lives <= 0) {
         setGameOver(true)
@@ -154,7 +200,7 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
           player.x < platform.x + platform.width - scrollOffset.current
         ) {
           player.onGround = true
-          player.dy = 0
+          player.dy = 0 // 중력 초기화
           player.y = platform.y - player.height
         }
       })
@@ -167,7 +213,41 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
           player.y + player.height > monster.y &&
           player.y < monster.y + monster.height
         ) {
-          decreaseLives()
+          if (!player.isInvincible) {
+            decreaseLives()
+          }
+        }
+      })
+
+      // 고기 먹기
+      meats.forEach((meat) => {
+        if (
+          !meat.isEaten && // 아직 먹히지 않은 경우만 체크
+          player.x + player.width > meat.x - scrollOffset.current &&
+          player.x < meat.x + meat.width - scrollOffset.current &&
+          player.y + player.height > meat.y &&
+          player.y < meat.y + meat.height
+        ) {
+          meat.isEaten = true
+          player.lives++
+        }
+      })
+
+      // 날개 먹기
+      wings.forEach((wing) => {
+        if (
+          !wing.isEaten && // 아직 먹히지 않은 경우만 체크
+          player.x + player.width > wing.x - scrollOffset.current &&
+          player.x < wing.x + wing.width - scrollOffset.current &&
+          player.y + player.height > wing.y &&
+          player.y < wing.y + wing.height
+        ) {
+          wing.isEaten = true
+          player.hasWings = true // 날개 상태 활성화
+          player.isInvincible = true // 무적 상태
+
+          const invincibleTime = 10 * 1000 // 10초
+          triggerInvincibility(invincibleTime, true)
         }
       })
 
@@ -193,7 +273,7 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
     }
 
     const applyGravity = () => {
-      if (!player.onGround) {
+      if (!player.onGround && !player.hasWings) {
         player.dy += GRAVITY
         player.y += player.dy
       }
@@ -213,6 +293,8 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
       drawPlatforms(ctx, platforms, scrollOffset.current)
       drawCoins(ctx, coins, scrollOffset.current)
       drawMonsters(ctx, monsters, scrollOffset.current)
+      drawMeats(ctx, meats, scrollOffset.current)
+      drawWings(ctx, wings, scrollOffset.current)
       drawLives(ctx, player, heartImage)
 
       if (!gameOver) {
