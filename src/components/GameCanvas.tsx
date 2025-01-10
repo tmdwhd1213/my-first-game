@@ -7,7 +7,7 @@ interface GameCanvasProps {
 
 const GameCanvas: React.FC<GameCanvasProps> = ({ onExit }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const { gameOver, restartGame } = useGameLogic(canvasRef)
+  const { gameOver, restartGame } = useGameLogic(canvasRef, onExit)
 
   return (
     <div className="relative">

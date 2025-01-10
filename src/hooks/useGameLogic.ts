@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+  finishLine,
   initializeCoins,
   initializeMeats,
   initializeWings,
@@ -13,6 +14,7 @@ import {
   drawBackground,
   drawCoins,
   drawCollectedCoins,
+  drawFinishLine,
   drawLives,
   drawMeats,
   drawMonsters,
@@ -24,7 +26,10 @@ import background from '../assets/background/background.webp'
 import heartIcon from '../assets/heart/heart-icon.png'
 import { coinAppearances } from '../constants/appearance'
 
-const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
+const useGameLogic = (
+  canvasRef: React.RefObject<HTMLCanvasElement>,
+  onExit: () => void
+) => {
   const [gameOver, setGameOver] = useState(false)
   const scrollOffset = useRef(0)
   const animationFrameId = useRef<number | null>(null)
@@ -190,8 +195,10 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
       }
     }
 
-    const checkCollisions = () => {
+    const checkCollisions = async () => {
       player.onGround = false
+
+      // 땅바닥
       platforms.forEach((platform) => {
         if (
           player.y + player.height >= platform.y &&
@@ -204,6 +211,17 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
           player.y = platform.y - player.height
         }
       })
+
+      // 피니시라인 충돌
+      if (
+        player.x + player.width > finishLine.x - scrollOffset.current &&
+        player.x < finishLine.x + finishLine.width - scrollOffset.current &&
+        player.y + player.height > finishLine.y &&
+        player.y < finishLine.y + finishLine.height
+      ) {
+        alert('🎉 축하합니다! 스테이지 1 클리어! 🎉')
+        await onExit() // 메인 화면으로 이동
+      }
 
       // 몬스터랑 부딪혔을 때
       monsters.forEach((monster) => {
@@ -246,7 +264,7 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
           player.hasWings = true // 날개 상태 활성화
           player.isInvincible = true // 무적 상태
 
-          const invincibleTime = 10 * 1000 // 10초
+          const invincibleTime = 5000 * 1000 // 5초
           triggerInvincibility(invincibleTime, true)
         }
       })
@@ -296,6 +314,7 @@ const useGameLogic = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
       drawMeats(ctx, meats, scrollOffset.current)
       drawWings(ctx, wings, scrollOffset.current)
       drawLives(ctx, player, heartImage)
+      drawFinishLine(ctx, finishLine, scrollOffset.current)
 
       if (!gameOver) {
         handleMovement()

@@ -1,3 +1,4 @@
+import FinishLine, { FinishLineAppearance } from '@/classes/FinishLine'
 import Coin from '../classes/Coin'
 import Meat, { MeatAppearance } from '../classes/Meat'
 import Monster, { MonsterAppearance } from '../classes/Monster'
@@ -33,11 +34,33 @@ export const platforms = [
   new Platform(1500, 250, 200, 20, PlatformAppearance.Default),
   new Platform(1700, 300, 200, 20, PlatformAppearance.Default),
   new Platform(1950, 250, 200, 20, PlatformAppearance.Default),
+  new Platform(2250, 250, 150, 20, PlatformAppearance.Default),
+  new Platform(2500, 200, 150, 20, PlatformAppearance.Default),
+  new Platform(2750, 150, 150, 20, PlatformAppearance.Default),
+  new Platform(3000, 250, 150, 20, PlatformAppearance.Default),
+  new Platform(3150, 250, 150, 20, PlatformAppearance.Default),
+  new Platform(3300, 250, 150, 20, PlatformAppearance.Default),
+  new Platform(3550, 200, 150, 20, PlatformAppearance.Default),
+  new Platform(3750, 100, 150, 20, PlatformAppearance.Default),
+  new Platform(3950, 300, 150, 20, PlatformAppearance.Default),
 ]
 
+export const finishLine = new FinishLine(
+  4030,
+  250,
+  60,
+  60,
+  FinishLineAppearance.Default
+)
 export const monsters = [
   new Monster(700, 120, 30, 30, MonsterAppearance.Default),
   new Monster(1000, 100, 30, 30, MonsterAppearance.Monster2),
+  new Monster(1500, 100, 30, 30, MonsterAppearance.Monster2),
+  new Monster(1700, 250, 30, 30, MonsterAppearance.Default),
+  new Monster(2570, 170, 30, 30, MonsterAppearance.Default),
+  new Monster(3100, 230, 30, 30, MonsterAppearance.Default),
+  new Monster(3300, 100, 30, 30, MonsterAppearance.Monster2),
+  new Monster(3800, 70, 30, 30, MonsterAppearance.Monster2),
 ]
 
 export const initializeMeats = () => [

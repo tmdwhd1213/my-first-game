@@ -1,3 +1,4 @@
+import FinishLine from '@/classes/FinishLine'
 import Coin from '../classes/Coin'
 import Meat from '../classes/Meat'
 import Monster from '../classes/Monster'
@@ -9,6 +10,7 @@ import {
   platformAppearances,
   meatAppearances,
   wingAppearances,
+  finishLineAppearances,
 } from '../constants/appearance'
 import { coinAppearances } from '../constants/appearance'
 import { Player } from '../constants/objects'
@@ -81,6 +83,26 @@ export const drawPlatforms = (
 
     platform.draw(ctx, scrollOffset, platformImage)
   })
+}
+
+export const drawFinishLine = (
+  ctx: CanvasRenderingContext2D,
+  finishLine: FinishLine,
+  scrollOffset: number
+) => {
+  // appearance에 맞는 이미지를 가져옴
+  const finishLineImage =
+    finishLineAppearances[finishLine.appearance || 'default']
+
+  // 이미지가 로드되지 않았으면 경고 출력 후 건너뜀
+  if (!finishLineImage || !finishLineImage.complete) {
+    console.warn(
+      `Image for appearance '${finishLine.appearance}' is not loaded yet.`
+    )
+    return
+  }
+
+  finishLine.draw(ctx, scrollOffset, finishLineImage)
 }
 
 export const drawCoins = (

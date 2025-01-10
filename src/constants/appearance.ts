@@ -9,6 +9,7 @@ import monster2ImageSrc from '@/assets/monster/monster2.png'
 import defaultplatformImageSrc from '@/assets/ground/ground.png'
 import defaultMeat from '@/assets/meat/hot-dog.png'
 import defaultWing from '@/assets/wing/heart-wings.png'
+import defaultFinish from '@/assets/finish/finish-line.png'
 
 export const playerAppearances: Record<string, HTMLImageElement> = {
   default: createImage(defaultImageSrc),
@@ -36,4 +37,8 @@ export const wingAppearances: Record<string, HTMLImageElement> = {
 
 export const platformAppearances: Record<string, HTMLImageElement> = {
   default: createImage(defaultplatformImageSrc),
+}
+
+export const finishLineAppearances: Record<string, HTMLImageElement> = {
+  default: createImage(defaultFinish),
 }
