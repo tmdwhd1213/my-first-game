@@ -7,7 +7,7 @@ import {
   monsters,
   platforms,
 } from '../constants/objects'
-import { GRAVITY, JUMP_STRENGTH, MAX_FALL_SPEED } from '../constants/settings'
+import { GRAVITY, JUMP_STRENGTH } from '../constants/settings'
 import Platform from '../classes/Platform'
 import {
   drawBackground,

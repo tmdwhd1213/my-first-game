@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 import useGameLogic from '../hooks/useGameLogic'
 
 interface GameCanvasProps {

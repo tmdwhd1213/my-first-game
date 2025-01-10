@@ -7,6 +7,7 @@ export default class GameObject {
   ) {}
 
   draw(ctx: CanvasRenderingContext2D, ...args: any[]) {
+    console.log(args)
     ctx.fillRect(this.x, this.y, this.width, this.height)
   }
 }

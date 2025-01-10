@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  base: '/my-first-game/', // 레포지토리 이름
   plugins: [react()],
   resolve: {
     alias: {
