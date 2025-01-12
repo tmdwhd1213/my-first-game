@@ -5,7 +5,7 @@ import {
   initializeMeats,
   initializeWings,
   initialPlayerState,
-  monsters,
+  initializeMonsters,
   platforms,
 } from '../constants/objects'
 import { GRAVITY, JUMP_STRENGTH } from '../constants/settings'
@@ -40,6 +40,10 @@ const useGameLogic = (
   let coins = initializeCoins()
   let meats = initializeMeats()
   let wings = initializeWings()
+  let monsters = initializeMonsters()
+
+  // 투사체 배열
+  const projectiles = useRef<Array<{x: number; y: number; direction: boolean;}>>([])
 
   // 이미지
   const heartImage = new Image() // 하트 이미지 전역 생성
@@ -59,6 +63,7 @@ const useGameLogic = (
 
     // 코인 초기화
     coins = initializeCoins()
+    monsters = initializeMonsters()
 
     // 기존 AnimationFrame 중단
     if (animationFrameId.current !== null) {
@@ -80,11 +85,57 @@ const useGameLogic = (
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameOver) return
       keys[e.key] = true
+
+      // X 키를 눌렀을 때 투사체 발사
+      if (e.key === 'x') {
+        projectiles.current.push({
+          x: player.x + (player.flip ? player.width : 0), // 플레이어 위치 기준
+          y: player.y + player.height / 2, // 플레이어 중심에서 발사
+          direction: player.flip, // 방향 (true: 오른쪽, false: 왼쪽)
+        })
+      }
     }
 
     const handleKeyUp = (e: KeyboardEvent) => {
       if (gameOver) return
       keys[e.key] = false
+    }
+
+    const updateProjectiles = () => {
+      projectiles.current = projectiles.current.filter((projectile) => {
+        // 투사체 이동 (오른쪽 또는 왼쪽)
+        projectile.x += projectile.direction ? 10 : -10
+
+        // 투사체가 사거리를 초과하면 제거
+        return Math.abs(projectile.x - player.x) <= 500
+      })
+    }
+
+    const drawProjectiles = () => {
+      projectiles.current.forEach((projectile) => {
+        ctx.beginPath()
+        ctx.arc(projectile.x, projectile.y, 5, 0, Math.PI * 2) // 투사체 크기
+        ctx.fillStyle = 'red' // 투사체 색상
+        ctx.fill()
+        ctx.closePath()
+      })
+    }
+
+    const checkProjectileCollisions = () => {
+      projectiles.current.forEach((projectile, projectileIndex) => {
+        monsters.forEach((monster, monsterIndex) => {
+          if (
+            projectile.x > monster.x - scrollOffset.current &&
+            projectile.x < monster.x + monster.width - scrollOffset.current &&
+            projectile.y > monster.y &&
+            projectile.y < monster.y + monster.height
+          ) {
+            // 몬스터에 맞았을 경우
+            monsters.splice(monsterIndex, 1) // 몬스터 제거
+            projectiles.current.splice(projectileIndex, 1) // 투사체 제거
+          }
+        })
+      })
     }
 
     const handleMovement = () => {
@@ -316,10 +367,14 @@ const useGameLogic = (
       drawLives(ctx, player, heartImage)
       drawFinishLine(ctx, finishLine, scrollOffset.current)
 
+      drawProjectiles() // 투사체 그리기
+
       if (!gameOver) {
         handleMovement()
         applyGravity()
         checkCollisions()
+        updateProjectiles() // 투사체 이동 업데이트
+        checkProjectileCollisions() // 투사체 충돌 체크
       }
 
       animationFrameId.current = requestAnimationFrame(update)

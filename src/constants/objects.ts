@@ -52,7 +52,7 @@ export const finishLine = new FinishLine(
   60,
   FinishLineAppearance.Default
 )
-export const monsters = [
+export const initializeMonsters = (): Monster[] => [
   new Monster(700, 120, 30, 30, MonsterAppearance.Default),
   new Monster(1000, 100, 30, 30, MonsterAppearance.Monster2),
   new Monster(1500, 100, 30, 30, MonsterAppearance.Monster2),

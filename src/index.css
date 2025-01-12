@@ -1,9 +1,11 @@
+@import '@fontsource/noto-sans-kr'; /* 설치된 폰트 가져오기 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* 커스텀 스타일 */
 body {
+  @apply font-sans; /* Tailwind의 기본 sans 설정 */
   @apply bg-gray-100 text-gray-800;
 }
 
