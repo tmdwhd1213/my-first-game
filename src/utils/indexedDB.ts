@@ -62,7 +62,7 @@ export const loginCheck = async (
       }
     }
 
-    request.onerror = (event) => {
+    request.onerror = () => {
       reject('An error occurred during login')
     }
   })
