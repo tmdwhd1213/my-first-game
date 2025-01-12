@@ -1,80 +1,81 @@
-import { getRequestError, getRequestResult } from './indexedDBUtil'
+import { User } from '@/hooks/useIndexedDB'
+import { openDB } from './idb'
 
-const dbName = 'myDatabase'
-const storeName = 'myStore'
-
-export const openDB = (version = 1): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, version)
-
-    request.onupgradeneeded = (event) => {
-      const db = getRequestResult<IDBDatabase>(event)
-      if (!db.objectStoreNames.contains(storeName)) {
-        db.createObjectStore(storeName, { keyPath: 'id' })
-      }
-    }
-
-    request.onsuccess = (event) => {
-      const db = getRequestResult<IDBDatabase>(event)
-      return resolve(db)
-    }
-
-    request.onerror = (event) => {
-      const error = getRequestError(event)
-      return reject(error)
-    }
-  })
+// indexedDB 연결 및 테이블 생성
+export const openDBConnection = async () => {
+  // openDB 함수 호출
+  const db = await openDB(1) // 데이터베이스 버전 1로 설정 (버전은 필요에 따라 변경 가능)
+  return db
 }
 
-export const addData = (db: IDBDatabase, data: any): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readwrite')
-    const store = transaction.objectStore(storeName)
-    const request = store.add(data)
-
-    request.onsuccess = () => resolve()
-    request.onerror = (event) => {
-      const error = getRequestError(event)
-      reject(error)
-    }
-  })
-}
-
-export const getData = (
+// 유저 데이터 추가
+export const addUser = async (
   db: IDBDatabase,
-  key: number | string
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readonly')
-    const store = transaction.objectStore(storeName)
-    const request = store.get(key)
+  data: { username: string; password: string }
+) => {
+  const tx = db.transaction('users', 'readwrite')
+  const store = tx.objectStore('users')
+  await store.add(data)
 
-    request.onsuccess = (event) => {
-      const result = getRequestResult<IDBDatabase>(event)
-      resolve(result)
-    }
-
-    request.onerror = (event) => {
-      const error = getRequestError(event)
-      reject(error)
-    }
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
   })
 }
 
-export const getAllData = (db: IDBDatabase): Promise<any[]> => {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, 'readonly')
-    const store = transaction.objectStore(storeName)
-    const request = store.getAll()
+// 유저 데이터 조회 (사용자명으로)
+export const getUserByUsername = async (
+  db: IDBDatabase,
+  username: string
+): Promise<User | any> => {
+  const tx = db.transaction('users', 'readonly')
+  const store = tx.objectStore('users')
+  return await store.get(username) // 'username'을 keyPath로 사용
+}
 
-    request.onsuccess = (event) => {
-      const result = (event.target as IDBRequest).result
-      resolve(result)
-    }
+// 모든 유저 데이터 조회
+export const getAllUsers = async (db: IDBDatabase) => {
+  const tx = db.transaction('users', 'readonly')
+  const store = tx.objectStore('users')
+  return await store.getAll()
+}
 
-    request.onerror = (event) => {
-      const error = getRequestError(event)
-      reject(error)
-    }
+// 플레이어 데이터 추가
+export const addData = async (db: IDBDatabase, data: any) => {
+  const tx = db.transaction('players', 'readwrite')
+  const store = tx.objectStore('players')
+  await store.add(data)
+
+  // 트랜잭션이 완료될 때까지 기다리기 위해 oncomplete 이벤트 사용
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+  })
+}
+
+// 플레이어 데이터 조회 (키 값으로)
+export const getData = async (db: IDBDatabase, key: number | string) => {
+  const tx = db.transaction('players', 'readonly')
+  const store = tx.objectStore('players')
+  return await store.get(key)
+}
+
+// 모든 플레이어 데이터 조회
+export const getAllData = async (db: IDBDatabase) => {
+  const tx = db.transaction('players', 'readonly')
+  const store = tx.objectStore('players')
+  return await store.getAll()
+}
+
+// 플레이어 데이터 수정
+export const updateData = async (db: IDBDatabase, data: any) => {
+  const tx = db.transaction('players', 'readwrite')
+  const store = tx.objectStore('players')
+  await store.put(data)
+
+  // 트랜잭션이 완료될 때까지 기다리기 위해 oncomplete 이벤트 사용
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
   })
 }

@@ -118,7 +118,7 @@ const useGameLogic = (
     }
 
     const updateProjectiles = (deltaTime: number) => {
-      const projectileSpeed = 3 // 기본 투사체 이동 속도
+      const projectileSpeed = 4 // 기본 투사체 이동 속도
       const adjustedSpeed = projectileSpeed * (deltaTime / 10) // deltaTime을 사용해 이동 속도 조정
 
       projectiles.current = projectiles.current.filter((projectile) => {

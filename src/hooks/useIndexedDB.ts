@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react'
-import { openDB, addData, getData, getAllData } from '../utils/indexedDB'
+import { addUser, getUserByUsername, getAllUsers } from '../utils/indexedDB'
+import { openDB } from '@/utils/idb'
+
+// User 타입 정의
+export interface User {
+  username: string
+  password: string
+}
 
 const useIndexedDB = () => {
   const [db, setDb] = useState<IDBDatabase | null>(null)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     const initializeDB = async () => {
@@ -14,26 +22,26 @@ const useIndexedDB = () => {
   }, [])
 
   const add = async (data: any) => {
-    if (!db) throw new Error('Database not initialized')
-    await addData(db, data)
+    try {
+      if (!db) throw new Error('Database not initialized')
+      await addUser(db, data)
+    } catch (error: any) {
+      setError(error)
+      throw error
+    }
   }
 
-  const get = async (key: number | string) => {
+  const get = async (key: string) => {
     if (!db) throw new Error('Database not initialized')
-    return await getData(db, key)
+    return await getUserByUsername(db, key)
   }
 
   const getAll = async () => {
     if (!db) throw new Error('Database not initialized')
-    return await getAllData(db)
+    return await getAllUsers(db)
   }
 
-  //   const remove = async (key: number | string) => {
-  //     if (!db) throw new Error('Database not initialized')
-  //     await deleteData(db, key)
-  //   }
-
-  return { add, get, getAll }
+  return { add, get, getAll, error }
 }
 
 export default useIndexedDB
