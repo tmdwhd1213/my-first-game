@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import mainBackground from '@/assets/mainBackground/mainBackground.webp'
 import useIndexedDB from '@/hooks/useIndexedDB'
-import { openDB } from '@/utils/idb'
+import useAuth from '@/hooks/useAuth'
 
 interface MainMenuProps {
   onStartGame: () => void // 게임 시작 콜백
@@ -14,40 +14,35 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onSettings,
   onExit,
 }) => {
-  const { add, get, error: dbError } = useIndexedDB() // useIndexedDB 훅 사용
-  const [isLogin, setIsLogin] = useState(false)
+  const { add, login, error: dbError } = useIndexedDB() // useIndexedDB 훅 사용
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUpMode, setIsSignUpMode] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [, setDb] = useState<IDBDatabase | null>(null)
-
-  // DB 연결 시도
-  useEffect(() => {
-    const initializeDB = async () => {
-      try {
-        const database = await openDB()
-        setDb(database)
-      } catch (err) {
-        console.error('DB 연결 실패:', err)
-      }
-    }
-
-    initializeDB()
-  }, [])
+  const { isLogin, setIsLogin, logout, error, setError } = useAuth()
+  // const [, setDb] = useState<IDBDatabase | null>(null)
 
   const handleLogin = async () => {
     try {
-      const user = await get(username)
-      if (user && user.password === password) {
+      const user = await login({ username, password })
+      console.log(user)
+
+      if (user) {
         setIsLogin(true)
         setError(null)
+        console.log('Signup successful')
+        // 로그인 성공 시 로컬스토리지에 토큰 저장
+        localStorage.setItem('userToken', JSON.stringify(user))
       } else {
         setError('Invalid username or password')
       }
     } catch (err) {
       setError('An error occurred during login')
     }
+  }
+
+  const handleLogout = () => {
+    logout() // 로그아웃 시 로컬 스토리지에서 토큰 삭제
+    setIsLogin(false) // 로그인 상태 초기화
   }
 
   const handleSignUp = async () => {
@@ -124,57 +119,63 @@ const MainMenu: React.FC<MainMenuProps> = ({
             </button>
             <button
               className="px-8 py-4 bg-gray-500 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition duration-300"
-              onClick={() => setIsLogin(false)}
+              onClick={handleLogout}
             >
               로그아웃
             </button>
           </>
         ) : isSignUpMode ? (
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={handleSignUp}
-              className="w-full py-4 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
-            >
-              회원가입
-            </button>
+          <div>
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                className="w-full py-4 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
+              >
+                회원가입
+              </button>
+            </form>
             {error && <p className="text-red-500 text-center">{error}</p>}
           </div>
         ) : (
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={handleLogin}
-              className="w-full py-4 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
-            >
-              로그인
-            </button>
+          <div>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username" // 사용자 이름에 autocomplete 추가
+                className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password" // 비밀번호에 autocomplete 추가
+                className="w-full p-4 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                className="w-full py-4 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600 transition duration-300"
+              >
+                로그인
+              </button>
+            </form>
             {error && <p className="text-red-500 text-center">{error}</p>}
             <button
               onClick={() => setIsSignUpMode(true)}

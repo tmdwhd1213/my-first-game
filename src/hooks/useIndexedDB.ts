@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react'
-import { addUser, getUserByUsername, getAllUsers } from '../utils/indexedDB'
+import {
+  addUser,
+  getUserByUsername,
+  getAllUsers,
+  loginCheck,
+} from '../utils/indexedDB'
 import { openDB } from '@/utils/idb'
 
 // User 타입 정의
@@ -31,6 +36,27 @@ const useIndexedDB = () => {
     }
   }
 
+  const login = async ({
+    username,
+    password,
+  }: {
+    username: string
+    password: string
+  }) => {
+    try {
+      if (!db) throw new Error('Database not initialized') // db가 없을 경우 처리
+      const user = await loginCheck(db, username, password) // 로그인 체크
+
+      if (user) {
+        console.log(user) // user 정보 출력 (디버깅용)
+      }
+
+      return user
+    } catch (error: any) {
+      console.error(error) // 에러 출력
+    }
+  }
+
   const get = async (key: string) => {
     if (!db) throw new Error('Database not initialized')
     return await getUserByUsername(db, key)
@@ -41,7 +67,7 @@ const useIndexedDB = () => {
     return await getAllUsers(db)
   }
 
-  return { add, get, getAll, error }
+  return { add, get, getAll, error, login }
 }
 
 export default useIndexedDB

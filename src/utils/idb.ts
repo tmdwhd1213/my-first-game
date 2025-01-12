@@ -17,6 +17,16 @@ export const openDB = (version = 1): Promise<IDBDatabase> => {
         })
         store.createIndex('users', 'users') // 이름으로 검색할 수 있도록 인덱스 추가
       }
+
+      // users 저장소 추가
+      if (!db.objectStoreNames.contains('users')) {
+        const usersStore = db.createObjectStore('users', {
+          keyPath: 'id',
+          autoIncrement: true,
+        })
+        usersStore.createIndex('username', 'username') // username으로 검색할 수 있도록 인덱스 추가
+        usersStore.createIndex('password', 'password') // password를 기준으로 인덱스를 추가
+      }
     }
 
     request.onsuccess = (event) => {

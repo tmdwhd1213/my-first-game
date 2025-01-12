@@ -386,7 +386,7 @@ const useGameLogic = (
       const deltaTime = timestamp - lastTimestamp
       lastTimestamp = timestamp
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(0, 0, canvas?.width, canvas?.height)
 
       // Update game state based on deltaTime
       drawBackground(ctx, backgroundImage, canvasRef.current)
