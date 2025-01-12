@@ -19,7 +19,6 @@ function App() {
 
   const handleExitGame = () => {
     setGameStarted(false) // 메인 화면으로 돌아가기
-    console.log('test')
   }
 
   return (
