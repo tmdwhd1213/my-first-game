@@ -43,7 +43,13 @@ const useGameLogic = (
   let monsters = initializeMonsters()
 
   // 투사체 배열
-  const projectiles = useRef<Array<{x: number; y: number; direction: boolean;}>>([])
+  const projectiles = useRef<
+    Array<{ x: number; y: number; direction: boolean }>
+  >([])
+
+  // 공격 간격 제어
+  const attackCooldown = 100 // 공격 간격 (ms)
+  const lastAttackTime = useRef(0)
 
   // 이미지
   const heartImage = new Image() // 하트 이미지 전역 생성
@@ -86,13 +92,18 @@ const useGameLogic = (
       if (gameOver) return
       keys[e.key] = true
 
-      // X 키를 눌렀을 때 투사체 발사
+      // X 키를 눌렀을 때 투사체 발사 (공격 속도 제한)
       if (e.key === 'x') {
-        projectiles.current.push({
-          x: player.x + (player.flip ? player.width : 0), // 플레이어 위치 기준
-          y: player.y + player.height / 2, // 플레이어 중심에서 발사
-          direction: player.flip, // 방향 (true: 오른쪽, false: 왼쪽)
-        })
+        const currentTime = Date.now()
+        if (currentTime - lastAttackTime.current >= attackCooldown) {
+          projectiles.current.push({
+            x: player.x + (player.flip ? player.width : 0), // 플레이어 위치 기준
+            y: player.y + player.height / 2, // 플레이어 중심에서 발사
+            direction: player.flip, // 방향 (true: 오른쪽, false: 왼쪽)
+          })
+
+          lastAttackTime.current = currentTime // 마지막 공격 시간 갱신
+        }
       }
     }
 
@@ -275,14 +286,18 @@ const useGameLogic = (
       }
 
       // 몬스터랑 부딪혔을 때
-      monsters.forEach((monster) => {
+      monsters.forEach((monster, index) => {
         if (
           player.x + player.width > monster.x - scrollOffset.current &&
           player.x < monster.x + monster.width - scrollOffset.current &&
           player.y + player.height > monster.y &&
           player.y < monster.y + monster.height
         ) {
-          if (!player.isInvincible) {
+          if (player.hasWings) {
+            // 날개 상태일 경우 몬스터 제거
+            monsters.splice(index, 1)
+          } else if (!player.isInvincible) {
+            // 무적 상태가 아닐 경우 라이프 감소
             decreaseLives()
           }
         }
