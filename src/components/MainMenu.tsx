@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import mainBackground from '@/assets/mainBackground/mainBackground.webp'
+import { openDB, getAllData } from '@/utils/indexedDB'
 
 interface MainMenuProps {
   onStartGame: () => void // 게임 시작 콜백
@@ -12,6 +13,20 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onSettings,
   onExit,
 }) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const db = await openDB()
+        const data = await getAllData(db)
+        console.log('All Data: ', data)
+      } catch (error) {
+        console.error('Error fetching data: ', error)
+      }
+    }
+
+    fetchData()
+  }, [])
+
   return (
     <div
       className="main-menu flex flex-col items-center justify-center h-screen bg-cover bg-center"
@@ -62,6 +77,12 @@ const MainMenu: React.FC<MainMenuProps> = ({
           onClick={onSettings}
         >
           ⚙️ 설정 (준비 중)
+        </button>
+        <button
+          className="px-8 py-4 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition"
+          onClick={onSettings}
+        >
+          ⚙️ 테스트 DB
         </button>
         <button
           className="px-8 py-4 bg-red-500 text-white font-bold rounded-lg shadow-md hover:bg-red-600 transition"
